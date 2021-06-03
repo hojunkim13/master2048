@@ -77,7 +77,7 @@ def main(n_episode, n_sim, policy, value):
 
 if __name__ == "__main__":
     n_episode = 1
-    n_sim = 150
+    n_sim = 200
     print("** SNM & total value")
     main(n_episode=n_episode, n_sim=n_sim, policy=SNM_policy, value="total")
     # print("** CNM & total value")
