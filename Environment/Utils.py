@@ -121,7 +121,7 @@ def SNM_policy(grid):
             moves += [move, move + 2]
     move = random.choice(moves)
     grid = move_grid(grid, move)
-    return grid
+    return grid, max_snm_value
 
 
 def CNM_policy(grid):

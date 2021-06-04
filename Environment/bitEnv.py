@@ -208,7 +208,7 @@ def prepareTrans(file_name = "move_transition.txt"):
                     addTrans(moveRightDown, transRightDown(a, b, c, d))
                     addTrans(moveLeftUp, transLeftUp(a, b, c, d))
 
-    # Generate the file transition.go with the 2 slices.
+    
     with open(file_name, "w") as file:
         file.write(str(moveRightDown))
         file.write("@")
