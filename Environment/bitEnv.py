@@ -2,22 +2,23 @@ import random
 import os
 import time
 
-'''
+
+"""
 The entire board                   -> 64-bit integer
 A sing line or colunm in the board -> 16-bit integer
 A single tile                      -> 4-bit integer
-'''
+"""
 
 
-class _2048:    
-    def step(self, move):        
-        grid, changed = moveGrid(self.grid, move)                
-        done = not getLegalMoves(grid)          
+class _2048:
+    def step(self, move):
+        grid, changed = moveGrid(self.grid, move)
+        done = not getLegalMoves(grid)
         reward = 1
         self.score += reward
         self.grid = grid
         return grid, reward, done, None
-    
+
     def reset(self):
         self.grid = generateGrid()
         self.score = 0
@@ -30,7 +31,7 @@ class _2048:
         print("+-----+-----+-----+-----+")
         for row in range(4):
             for tile in board[row]:
-                print(f"|{tile:<5}", end = "")
+                print(f"|{tile:<5}", end="")
             print("|")
             print("+-----+-----+-----+-----+")
         spending_time = time.time() - self.time_log
@@ -40,11 +41,11 @@ class _2048:
     def close(self):
         pass
 
+
 # 60 - 4x - 16y
 shift_tile_mask = [[60, 56, 52, 48], [44, 40, 36, 32], [28, 24, 20, 16], [12, 8, 4, 0]]
 
 shift_row_mask = [48, 32, 16, 0]
-
 
 
 def getTile(grid, row, col):
@@ -52,26 +53,32 @@ def getTile(grid, row, col):
 
 
 def setTile(grid, row, col, value):
-    shift_length = shift_tile_mask[row][col]    
-    grid &= ~(15 << shift_length) # remove
-    grid |= value << shift_length # input
+    shift_length = shift_tile_mask[row][col]
+    grid &= ~(15 << shift_length)  # remove
+    grid |= value << shift_length  # input
     return grid
+
 
 def getRow(grid, row):
     return (grid >> shift_row_mask[row]) & 65535
 
+
 def setRow(grid, row, row_value):
     shift_length = shift_row_mask[row]
-    grid &= ~(65535 << shift_length) # remove
-    grid |= row_value << shift_length # input
+    grid &= ~(65535 << shift_length)  # remove
+    grid |= row_value << shift_length  # input
     return grid
 
+
 def getCol(grid, col):
-    col_value = getTile(grid, 0, col) << 12 |\
-        getTile(grid, 1, col) << 8 |\
-        getTile(grid, 2, col) << 4 |\
-        getTile(grid, 3, col)
+    col_value = (
+        getTile(grid, 0, col) << 12
+        | getTile(grid, 1, col) << 8
+        | getTile(grid, 2, col) << 4
+        | getTile(grid, 3, col)
+    )
     return col_value
+
 
 def setCol(grid, col, col_value):
     grid = setTile(grid, 0, col, col_value >> 12 & 15)
@@ -79,7 +86,7 @@ def setCol(grid, col, col_value):
     grid = setTile(grid, 2, col, col_value >> 4 & 15)
     grid = setTile(grid, 3, col, col_value & 15)
     return grid
-            
+
 
 def generateGrid():
     grid = 0
@@ -153,6 +160,7 @@ def transRightDown(a, b, c, d):
         c, d, _ = trans(c, d)
     return a, b, c, d
 
+
 def transLeftUp(a, b, c, d):
     b, a, m1 = trans(b, a)
     c, b, m2 = trans(c, b)
@@ -165,30 +173,33 @@ def transLeftUp(a, b, c, d):
         c, b, _ = trans(c, b)
 
     if not (m1 or m2):
-        b, a, _ = trans(b, a)    
+        b, a, _ = trans(b, a)
     return a, b, c, d
+
 
 # grid = generate_grid()
 # grid2board(grid)
 
+
 def encodeUint16(a, b, c, d):
-    return a << 12 | b << 8 |  c << 4 | d
+    return a << 12 | b << 8 | c << 4 | d
+
 
 def decodeUint16(val):
     a = val >> 12 & 15
     b = val >> 8 & 15
     c = val >> 4 & 15
-    d = val & 15    
+    d = val & 15
     return a, b, c, d
 
 
-def prepareTrans(file_name = "move_transition.txt"):
+def prepareTrans(file_name="move_transition.txt"):
     try:
         if os.stat(file_name).st_size == 876026:
             with open(file_name, "r") as file:
                 data = file.read().split("@")
                 moveRightDown = eval(data[0])
-                moveLeftUp = eval(data[1])                
+                moveLeftUp = eval(data[1])
             return moveRightDown, moveLeftUp
     except:
         pass
@@ -208,36 +219,36 @@ def prepareTrans(file_name = "move_transition.txt"):
                     addTrans(moveRightDown, transRightDown(a, b, c, d))
                     addTrans(moveLeftUp, transLeftUp(a, b, c, d))
 
-    
     with open(file_name, "w") as file:
         file.write(str(moveRightDown))
         file.write("@")
         file.write(str(moveLeftUp))
     return moveRightDown, moveLeftUp
 
+
 moveRightDown, moveLeftUp = prepareTrans()
 
 
 def moveGrid(grid, move):
-    '''
+    """
     0 -> Left
     1 -> Up
     2 -> Right
     3 -> Down
-    '''
+    """
     origin = grid
     if move == 0:
         for row in range(4):
             line = getRow(grid, row)
             changed_line = moveLeftUp[line]
             grid = setRow(grid, row, changed_line)
-        
+
     elif move == 1:
         for col in range(4):
             line = getCol(grid, col)
             changed_line = moveLeftUp[line]
             grid = setCol(grid, col, changed_line)
-    
+
     elif move == 2:
         for row in range(4):
             line = getRow(grid, row)
@@ -249,37 +260,38 @@ def moveGrid(grid, move):
             line = getCol(grid, col)
             changed_line = moveRightDown[line]
             grid = setCol(grid, col, changed_line)
-          
-    moved = origin != grid    
+
+    moved = origin != grid
     grid = spawnTile(grid)
     return grid, moved
+
 
 def moveForHeuristic(grid, move):
     """
     The logic of game is same, but this function gives tile difference.
-    """    
+    """
     difference = 0
     if move == 0:
         for row in range(4):
             line = getRow(grid, row)
             changed_line = moveLeftUp[line]
-            for old_v, new_v in zip(decodeUint16(changed_line),decodeUint16(line)):
+            for old_v, new_v in zip(decodeUint16(changed_line), decodeUint16(line)):
                 difference += abs(new_v - old_v)
             grid = setRow(grid, row, changed_line)
-        
+
     elif move == 1:
         for col in range(4):
             line = getCol(grid, col)
             changed_line = moveLeftUp[line]
-            for old_v, new_v in zip(decodeUint16(changed_line),decodeUint16(line)):
+            for old_v, new_v in zip(decodeUint16(changed_line), decodeUint16(line)):
                 difference += abs(new_v - old_v)
             grid = setCol(grid, col, changed_line)
-    
+
     elif move == 2:
         for row in range(4):
             line = getRow(grid, row)
             changed_line = moveRightDown[line]
-            for old_v, new_v in zip(decodeUint16(changed_line),decodeUint16(line)):
+            for old_v, new_v in zip(decodeUint16(changed_line), decodeUint16(line)):
                 difference += abs(new_v - old_v)
             grid = setRow(grid, row, changed_line)
 
@@ -287,13 +299,14 @@ def moveForHeuristic(grid, move):
         for col in range(4):
             line = getCol(grid, col)
             changed_line = moveRightDown[line]
-            for old_v, new_v in zip(decodeUint16(changed_line),decodeUint16(line)):
+            for old_v, new_v in zip(decodeUint16(changed_line), decodeUint16(line)):
                 difference += abs(new_v - old_v)
             grid = setCol(grid, col, changed_line)
-              
+
     if difference:
         grid = spawnTile(grid)
     return grid, difference
+
 
 def getLegalMoves(grid):
     moves = []
@@ -303,9 +316,11 @@ def getLegalMoves(grid):
             moves.append(move)
     return moves
 
-def isEnd(grid):    
+
+def isEnd(grid):
     moves = getLegalMoves(grid)
     return not moves
+
 
 def view(grid):
     for v in grid2Board(grid):
@@ -315,25 +330,27 @@ def view(grid):
 
 
 
+
+"""
+Human Play
+"""
 if __name__ == "__main__":
     env = _2048()
     retry = True
-    while retry:        
+    while retry:
         done = False
         score = 0
         grid = env.reset()
         while not done:
             env.render()
-            
             try:
                 action = input("\n2,4,8,6 입력하세요 (하, 좌, 상, 우)\n")
-                action = {"4":0, "8":1, "6":2, "2":3, "5":3}[action]
+                action = {"4": 0, "8": 1, "6": 2, "2": 3, "5": 3}[action]
             except KeyError:
                 action = input("\n2,4,8,6 입력하세요 (하, 좌, 상, 우)\n")
-                action = {"4":0, "8":1, "6":2, "2":3, "5":3}[action]
-            grid, reward, done, info = env.step(action)            
-            score += reward        
+                action = {"4": 0, "8": 1, "6": 2, "2": 3, "5": 3}[action]
+            grid, reward, done, info = env.step(action)
+            score += reward
         response = input(f"게임 종료! [{score}]점\n계속하시겠습니까? (y/n)\n")
         if response == "n":
             retry = False
-        

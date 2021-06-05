@@ -1,7 +1,7 @@
 from copy import deepcopy
 import random
 import numpy as np
-from Environment import logic
+#from Environment import logic
 
 CELLS = [
     [(r, c) for r in range(4) for c in range(4)],  # LEFT
