@@ -21,10 +21,15 @@ class MemoryBuffer:
         self.P[idx] = p
         self.mem_cntr += 1
 
-    def adjustZ(self):
-        last_idx = (self.mem_cntr-1) % self.mem_max
-        for i in range(last_idx, last_idx - 99, -1):
-            self.Z[i] -= 0.01
+    def adjustZ(self, step_size):
+        last_idx = self.mem_cntr % self.mem_max
+        
+        decay = 0
+        max_step = min(step_size, 100)
+        for i in range(last_idx - max_step, last_idx):
+            self.Z[i] -= 0.02 * decay
+            decay += 1
+        print("a")
 
     def getSample(self, n=1):
         max_idx = min(self.mem_cntr, self.mem_max)

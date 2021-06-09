@@ -3,10 +3,10 @@ from Agent import Agent
 from Environment.BitEnv import _2048, grid2Board
 from Utils import preprocessing
 
-lr = 1e-3
+lr = 1e-2
 batch_size = 256
-n_sim = 400
-maxlen = 50000
+n_sim = 10
+maxlen = 10000
 
 n_episode = 10000
 state_dim = (16,4,4)
@@ -31,11 +31,11 @@ def main():
             agent.storeTranstion(preprocessing(grid), probs)
             grid = new_grid
             score += reward
-        agent.memory.adjustZ()
+        agent.memory.adjustZ(agent.step)
         
         loss = agent.learn()
-        # if (e+1) % 10 == 0:
-        #     agent.save("2048")
+        if (e+1) % 10 == 0:
+            agent.save("2048")
         score_list.append(score)
         average_score = np.mean(score_list[-100:])
         max_tile = np.max(grid2Board(grid))

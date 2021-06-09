@@ -26,13 +26,11 @@ class Agent:
 
     def getAction(self, grid):
         visits = self.mcts.getAction(grid, self.n_sim)
+        probs = [p/sum(visits) for p in visits]
         if self.step <= 100:
-            probs = [p/sum(visits) for p in visits]
             action = np.random.choice(range(4), p = probs)
         else:
             action = np.argmax(visits)
-            probs = [0,0,0,0]
-            probs[action] = 1
         self.step += 1
         return action, probs
 
