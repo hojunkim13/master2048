@@ -3,9 +3,9 @@ from Agent import Agent
 from Environment.BitEnv import _2048, grid2Board
 from Utils import preprocessing
 
-lr = 1e-2
+lr = 1e-3
 batch_size = 256
-n_sim = 10
+n_sim = 100
 maxlen = 10000
 
 n_episode = 10000

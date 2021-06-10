@@ -1,6 +1,7 @@
 import logging
 import numpy as np
 import torch
+import pickle
 from Environment.BitEnv import getTile
 
 
@@ -28,8 +29,7 @@ class MemoryBuffer:
         max_step = min(step_size, 100)
         for i in range(last_idx - max_step, last_idx):
             self.Z[i] -= 0.02 * decay
-            decay += 1
-        print("a")
+            decay += 1        
 
     def getSample(self, n=1):
         max_idx = min(self.mem_cntr, self.mem_max)
@@ -38,6 +38,12 @@ class MemoryBuffer:
         P = self.P[indice]
         Z = self.Z[indice]        
         return S, P, Z
+
+    def save(self, path = "Data/MemoryBuffer.pkl"):
+        with open(path, mode = "wb") as file:
+            pickle.dump(self, file)
+    
+        
 
 
 class MCTSLogger(logging.Logger):
