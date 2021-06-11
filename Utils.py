@@ -81,7 +81,7 @@ def preprocessing(grid):
     input : 64-bit integer grid
     output : (16, 4, 4) shape tensor state
     """
-    board = torch.zeros((16, 4, 4), dtype=int)
+    board = torch.zeros((16, 4, 4), dtype=float)
     for row in range(4):
         for col in range(4):
             power_of_tile = getTile(grid, row, col)

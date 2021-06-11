@@ -5,7 +5,7 @@ from Utils import preprocessing, MemoryBuffer
 import pickle
 
 
-lr = 1e-3
+lr = 1e-2
 batch_size = 256
 n_sim = 50
 maxlen = 10000

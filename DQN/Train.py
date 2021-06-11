@@ -3,12 +3,12 @@ sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 import numpy as np
 from DQN.Agent import Agent
 from Utils import *
-from Environment.BitEnv import _2048()
+from Environment.BitEnv import _2048
 
 
 env_name = "2048"
 load = False
-n_state = (20,4,4)
+n_state = (16,4,4)
 n_action = 4
 learing_rate = 1e-4
 gamma = 0.9
@@ -23,9 +23,6 @@ n_episode = 10000
 
 
 
-
-
-
 if __name__ == "__main__":
     env = _2048()
     agent = Agent(n_state, n_action, learing_rate, gamma, replay_memory_buffer_size,
@@ -33,19 +30,17 @@ if __name__ == "__main__":
     
     scores = []    
     for episode in range(n_episode):
-        grid = env.reset()
-        state = preprocessing(grid)
+        grid = env.reset()        
         done = False
         score = 0
         while not done:
-            action, _ = agent.getAction(state)            
-            grid, reward, done, max_tile = env.step(action)
-            state_ = preprocessing(grid)
+            action = agent.getAction(grid)            
+            grid_, reward, done, max_tile = env.step(action)            
             score += reward
-            agent.storeTransition(state, action, reward, state_, done)
+            agent.storeTransition(grid, action, reward, grid_, done)
             agent.learn()
             agent.softUpdate()
-            state = state_ 
+            grid = grid_
 
         scores.append(score)
         movingAverageScore = np.mean(scores[-100:])
