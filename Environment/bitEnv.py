@@ -14,7 +14,7 @@ class _2048:
     def step(self, move):
         grid, changed = moveGrid(self.grid, move)
         done = not getLegalMoves(grid)
-        reward = 1
+        reward = -10 if done else 1
         self.score += reward
         self.grid = grid
         return grid, reward, done, None
@@ -177,10 +177,6 @@ def transLeftUp(a, b, c, d):
     return a, b, c, d
 
 
-# grid = generate_grid()
-# grid2board(grid)
-
-
 def encodeUint16(a, b, c, d):
     return a << 12 | b << 8 | c << 4 | d
 
@@ -268,7 +264,7 @@ def moveGrid(grid, move):
 
 def moveForHeuristic(grid, move):
     """
-    The logic of game is same, but this function gives tile difference.
+    The logic of game is same, but this function gives difference of tile.
     """
     difference = 0
     if move == 0:
@@ -328,13 +324,10 @@ def view(grid):
     print("")
 
 
-
-
-
-"""
-Human Play
-"""
 if __name__ == "__main__":
+    """
+    Human Play
+    """
     env = _2048()
     retry = True
     while retry:

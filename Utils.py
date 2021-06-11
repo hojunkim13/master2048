@@ -3,47 +3,52 @@ import numpy as np
 import torch
 import pickle
 from Environment.BitEnv import getTile
+from collections import deque
 
 
 class MemoryBuffer:
-    def __init__(self, mem_max, state_shape, action_shape):
-        self.mem_max = mem_max
-        self.action_shape = action_shape
-        self.state_shape = state_shape
+    def __init__(self, mem_max):
+        self.S = deque(maxlen=mem_max)        
+        self.Z = deque(maxlen=mem_max)
+        self.Z_temp = deque(maxlen=mem_max)
 
-        self.S = np.zeros((mem_max,) + state_shape, dtype=float)
-        self.P = np.zeros((mem_max, action_shape), dtype=float)
-        self.Z = np.ones((mem_max, 1), dtype=float)
-        self.mem_cntr = 0
+    def stackMemory(self, s, z):
+        self.S.append(s)        
+        self.Z_temp.append(z)
 
-    def stackMemory(self, s, p):
-        idx = self.mem_cntr % self.mem_max
-        self.S[idx] = s
-        self.P[idx] = p
-        self.mem_cntr += 1
+    def convert(self, seq : list, gamma : float = 0.99):
+        running_add = 0
+        out = seq.copy()
+        for i in reversed(range(len(out))):
+            v = seq[i] + running_add * gamma
+            out[i] = running_add = v
+        return out
 
-    def adjustZ(self, step_size):
-        last_idx = self.mem_cntr % self.mem_max
+    def updateZ(self, n_step : int = 50):
+        Z = self.Z_temp.copy()
         
-        decay = 0
-        max_step = min(step_size, 100)
-        for i in range(last_idx - max_step, last_idx):
-            self.Z[i] -= 0.02 * decay
-            decay += 1        
+        for i in range(len(Z)):
+            value = 0
+            decay = 1
+            temp = self.Z_temp[i:i+n_step]
+            for v in temp:
+                value += decay * v
+                decay *= 0.99
+            Z[i] = value                                    
+        
+        self.Z += Z
+        self.Z_temp.clear()
 
-    def getSample(self, n=1):
-        max_idx = min(self.mem_cntr, self.mem_max)
-        indice = np.random.randint(0, max_idx, size=n)
-        S = self.S[indice]
-        P = self.P[indice]
-        Z = self.Z[indice]        
-        return S, P, Z
+    def getSample(self, n=1):        
+        indice = np.random.randint(0, len(self.Z), size=n)
+        
+        S = torch.stack(list(self.S))[indice]    
+        Z = torch.tensor(self.Z)[indice]        
+        return S, Z
 
-    def save(self, path = "Data/MemoryBuffer.pkl"):
-        with open(path, mode = "wb") as file:
+    def save(self, path="Data/MemoryBuffer.pkl"):
+        with open(path, mode="wb") as file:
             pickle.dump(self, file)
-    
-        
 
 
 class MCTSLogger(logging.Logger):
@@ -69,17 +74,19 @@ class MCTSLogger(logging.Logger):
         else:
             self.handlers[0] = file_handler
 
+
 def preprocessing(grid):
     """
     preprocessing function for neural network
     input : 64-bit integer grid
     output : (16, 4, 4) shape tensor state
-    """    
-    board = torch.zeros((16,4,4), dtype = int)
+    """
+    board = torch.zeros((16, 4, 4), dtype=int)
     for row in range(4):
         for col in range(4):
-            power_of_tile = getTile(grid, row, col)            
+            power_of_tile = getTile(grid, row, col)
             board[power_of_tile][row][col] = 1
     return board
+
 
 logger = MCTSLogger()
