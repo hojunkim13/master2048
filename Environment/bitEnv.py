@@ -14,7 +14,11 @@ class _2048:
     def step(self, move):
         grid, changed = moveGrid(self.grid, move)
         done = not getLegalMoves(grid)
-        reward = -10 if done else 1
+        reward = 1
+        if not changed:
+            reward = -1
+        elif done:
+            reward = -10
         self.score += reward
         self.grid = grid
         return grid, reward, done, None

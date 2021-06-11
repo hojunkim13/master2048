@@ -45,16 +45,16 @@ class MCTS:
 
     def select(self, node, grid):            
         while not node.isLeaf():
-            values = [-1, -1, -1, -1]
+            values = {}
             for move in node.legal_moves:
                 values[move] = node.child[move].getUCT()
-            node = node.child[np.argmax(values)]
+            node = max(node.child.values(), key = Node.getUCT)
             grid, _ = moveGrid(grid, node.move)
         return node, grid
 
 
     def expand(self, node):
-        for move in range(4):            
+        for move in node.legal_moves:
             child_node = Node(node, move)
             node.child[move] = child_node        
 
@@ -114,14 +114,12 @@ class MCTS:
         #     self.root_grid = root_grid
 
         for _ in range(n_sim):
-            self.searchTree()
-        
+            self.searchTree()        
         visits = []
         for i in range(4):
             try:
                 visit = self.root_node.child[i].N
             except KeyError:
-                visits = 0
-            visits.append(visit)
-            
+                visit = 0
+            visits.append(visit)            
         return visits

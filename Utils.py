@@ -30,7 +30,7 @@ class MemoryBuffer:
         for i in range(len(Z)):
             value = 0
             decay = 1
-            temp = self.Z_temp[i:i+n_step]
+            temp = list(self.Z_temp)[i:i+n_step]
             for v in temp:
                 value += decay * v
                 decay *= 0.99

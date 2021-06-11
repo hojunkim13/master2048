@@ -32,7 +32,7 @@ def main():
         loss = 0
         agent.step = 0
         while not done:
-            # env.render()
+            #env.render()
             action = agent.getAction(grid)
             new_grid, reward, done, info = env.step(action)
             memory.stackMemory(preprocessing(grid), reward)

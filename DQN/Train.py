@@ -2,7 +2,8 @@ import os, sys
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 import numpy as np
 from DQN.Agent import Agent
-from Environment.Utils import *
+from Utils import *
+from Environment.BitEnv import _2048()
 
 
 env_name = "2048"
@@ -23,10 +24,10 @@ n_episode = 10000
 
 
 
-from Environment.DosEnv import _2048
-env = _2048()
+
 
 if __name__ == "__main__":
+    env = _2048()
     agent = Agent(n_state, n_action, learing_rate, gamma, replay_memory_buffer_size,
                 epsilon_decay,epsilon_min,epsilon_decay_step, batch_size, tau)
     
