@@ -114,7 +114,7 @@ class MCTS:
         #     self.root_grid = root_grid
 
         for _ in range(n_sim):
-            self.searchTree()        
+            self.searchTree()
         visits = []
         for i in range(4):
             try:

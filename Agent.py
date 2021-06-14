@@ -8,7 +8,7 @@ from Utils import logger, MemoryBuffer
 
 
 class Agent:
-    def __init__(self, state_dim, action_dim, lr, batch_size, n_sim):
+    def __init__(self, state_dim, action_dim, lr, batch_size, n_sim, mem_max):
         self.net = Network(state_dim, action_dim)
         self.optimizer = Adam(
             self.net.parameters(), lr=lr, weight_decay=1e-4, betas=(0.8, 0.999)
@@ -21,6 +21,7 @@ class Agent:
         self.action_dim = action_dim
         self.batch_size = batch_size
         self.mcts = MCTS(self.net)
+        self.memory = MemoryBuffer(mem_max)
                 
 
     def getAction(self, grid):
@@ -32,11 +33,11 @@ class Agent:
             action = np.argmax(visits)        
         return action
     
-    def learn(self, memory):
-        if len(memory.Z) < self.batch_size:
+    def learn(self):
+        if len(self.memory.Z) < self.batch_size:
             return 0
 
-        S, Z = memory.getSample(self.batch_size)
+        S, Z = self.memory.getSample(self.batch_size)
         S = S.float().cuda().reshape(-1, *self.state_dim)        
         Z = Z.float().cuda().reshape(-1, 1)
         
@@ -48,9 +49,13 @@ class Agent:
         self.scheduler.step()
         return value_loss.item()
 
-    def save(self, env_name):
-        torch.save(self.net.state_dict(), f"./data/model/{env_name}_2048zero.pt")
-
-    def load(self, env_name):
-        state_dict = torch.load(f"./data/model/{env_name}_2048zero.pt")
+    def save(self):
+        torch.save(self.net.state_dict(), f"./data/model/2048.pt")        
+        with open("data/model/MemoryBuffer.pkl", mode="wb") as file:
+            pickle.dump(self.memory, file)
+    
+    def load(self):
+        state_dict = torch.load(f"./data/model/2048.pt")
         self.net.load_state_dict(state_dict)
+        with open("data/model/MemoryBuffer.pkl", "rb") as file:
+            self.memory = pickle.load(file)

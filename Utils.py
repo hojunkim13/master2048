@@ -1,10 +1,9 @@
 import logging
 import numpy as np
 import torch
-import pickle
 from Environment.BitEnv import getTile
 from collections import deque
-
+from itertools import islice
 
 class MemoryBuffer:
     def __init__(self, mem_max):
@@ -24,19 +23,23 @@ class MemoryBuffer:
             out[i] = running_add = v
         return out
 
-    def updateZ(self, n_step : int = 50):
-        Z = self.Z_temp.copy()
-        
-        for i in range(len(Z)):
-            value = 0
-            decay = 1
-            temp = list(self.Z_temp)[i:i+n_step]
-            for v in temp:
-                value += decay * v
-                decay *= 0.99
-            Z[i] = value                                    
-        
-        self.Z += Z
+    def updateZ(self, n_step : int = 100):                
+        # for i in range(len(Z)):
+        #     value = 0
+        #     decay = 1
+        #     temp = list(self.Z_temp)[i:i+n_step]
+        #     for v in temp:
+        #         value += decay * v
+        #         decay *= 0.99
+        #     Z[i] = value
+        val = (1 - 0.99 ** n_step) / (1 - 0.99)
+        length = len(self.Z_temp)
+        Z = [val] * length
+        decay = 1
+        for i in range(length - 100, length):
+            Z[i] *= decay
+            decay *= 0.99            
+        self.Z += deque(Z)
         self.Z_temp.clear()
 
     def getSample(self, n=1):        
@@ -45,11 +48,6 @@ class MemoryBuffer:
         S = torch.stack(list(self.S))[indice]    
         Z = torch.tensor(self.Z)[indice]        
         return S, Z
-
-    def save(self, path="Data/MemoryBuffer.pkl"):
-        with open(path, mode="wb") as file:
-            pickle.dump(self, file)
-
 
 class MCTSLogger(logging.Logger):
     def __init__(self, name="MCTS"):
