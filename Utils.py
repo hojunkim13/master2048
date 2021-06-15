@@ -1,7 +1,7 @@
 import logging
 import numpy as np
 import torch
-from Environment.BitEnv import getTile
+from Environment.BitEnv import getTile, getFreeTile
 from collections import deque
 from itertools import islice
 
@@ -9,37 +9,27 @@ class MemoryBuffer:
     def __init__(self, mem_max):
         self.S = deque(maxlen=mem_max)        
         self.Z = deque(maxlen=mem_max)
-        self.Z_temp = deque(maxlen=mem_max)
+        self.Z_temp = []
 
     def stackMemory(self, s, z):
         self.S.append(s)        
         self.Z_temp.append(z)
 
-    def convert(self, seq : list, gamma : float = 0.99):
-        running_add = 0
+    def getNstepvalue(self, seq : list, gamma : float = 0.95):
         out = seq.copy()
-        for i in reversed(range(len(out))):
-            v = seq[i] + running_add * gamma
-            out[i] = running_add = v
-        return out
+        running_add = 1
+        value = 0
+        for i in range(len(seq)):
+            value += seq[i] * running_add
+            running_add *= gamma
+        return value
 
-    def updateZ(self, n_step : int = 100):                
-        # for i in range(len(Z)):
-        #     value = 0
-        #     decay = 1
-        #     temp = list(self.Z_temp)[i:i+n_step]
-        #     for v in temp:
-        #         value += decay * v
-        #         decay *= 0.99
-        #     Z[i] = value
-        val = (1 - 0.99 ** n_step) / (1 - 0.99)
-        length = len(self.Z_temp)
-        Z = [val] * length
-        decay = 1
-        for i in range(length - 100, length):
-            Z[i] *= decay
-            decay *= 0.99            
-        self.Z += deque(Z)
+    def updateZ(self, n_step : int = 10, gamma : float = 0.95):
+        Z_temp = []
+        for i in range(len(self.Z_temp)):
+            value = self.getNstepvalue(self.Z_temp[i:i+n_step])
+            Z_temp.append(value)                        
+        self.Z += deque(Z_temp)
         self.Z_temp.clear()
 
     def getSample(self, n=1):        

@@ -43,7 +43,7 @@ class Agent:
     def getAction(self, grid, test_mode=False):
         if test_mode or self.epsilon < np.random.rand():
             with torch.no_grad():
-                state = preprocessing(grid).unsqueeze(0).cuda()
+                state = preprocessing(grid).unsqueeze(0).cuda().float()
                 value = self.net(state)[0]
             action = torch.argmax(value).item()
             return action

@@ -5,7 +5,7 @@ from Utils import preprocessing
 
 
 
-lr = 1e-2
+lr = 1e-3
 batch_size = 256
 n_sim = 100
 maxlen = 10000
@@ -33,7 +33,7 @@ def main():
         while not done:
             # env.render()
             action = agent.getAction(grid)
-            new_grid, reward, done, info = env.step(action)
+            new_grid, reward, done, info = env.step(action)            
             agent.memory.stackMemory(preprocessing(grid), reward)
             grid = new_grid
             score += reward
@@ -42,11 +42,11 @@ def main():
         loss = agent.learn()
         if (e + 1) % 10 == 0:
             agent.save()
-        score_list.append(score)
+        score_list.append(agent.step)
         average_score = np.mean(score_list[-100:])
         max_tile = np.max(grid2Board(grid))
         print(
-            f"Episode : {e+1} / {n_episode}, Score : {score}, Max Tile : {max_tile}, Average: {average_score:.1f}, Loss : {loss:.3f}"
+            f"Episode : {e+1} / {n_episode}, Score : {agent.step}, Max Tile : {max_tile}, Average: {average_score:.1f}, Loss : {loss:.3f}"
         )
 
 

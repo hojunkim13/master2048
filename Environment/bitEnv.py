@@ -13,12 +13,13 @@ A single tile                      -> 4-bit integer
 class _2048:
     def step(self, move):
         grid, changed = moveGrid(self.grid, move)
-        done = not getLegalMoves(grid)
-        reward = 1
+        done = not getLegalMoves(grid)        
         if not changed:
-            reward = -1
+            reward = 0
         elif done:
             reward = -10
+        else:
+            reward = len(getFreeTile(self.grid)) - len(getFreeTile(grid))
         self.score += reward
         self.grid = grid
         return grid, reward, done, None
@@ -346,7 +347,7 @@ if __name__ == "__main__":
             except KeyError:
                 action = input("\n2,4,8,6 입력하세요 (하, 좌, 상, 우)\n")
                 action = {"4": 0, "8": 1, "6": 2, "2": 3, "5": 3}[action]
-            grid, reward, done, info = env.step(action)
+            grid, reward, done, info = env.step(action)            
             score += reward
         response = input(f"게임 종료! [{score}]점\n계속하시겠습니까? (y/n)\n")
         if response == "n":
