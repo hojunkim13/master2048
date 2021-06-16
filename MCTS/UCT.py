@@ -35,6 +35,7 @@ class Node:
 class MCTS:
     def __init__(self, net):
         self.net = net
+        self.last_move = None
 
     def getDepth(self, node):
         depth = 0
@@ -64,7 +65,7 @@ class MCTS:
             _, value = self.net(state)        
             value = value.cpu().item()
         #rollout_value = self.rollout(grid)
-        #value = (value + rollout_value) / 2
+        #value = (value + rollout_value) / 2        
         return value
 
     def rollout(self, grid):
@@ -99,23 +100,23 @@ class MCTS:
             self.backpropagation(leaf_node, -10)
 
     def getAction(self, root_grid, n_sim):
-        # self.root_node = Node(None, None, getLegalMoves(root_grid))
-        # self.root_grid = root_grid
+        self.root_node = Node(None, None, getLegalMoves(root_grid))
+        self.root_grid = root_grid
 
-        if self.last_move is None:
-            self.root_node = Node(None, None, get_legal_moves(root_grid))
-            self.root_grid = root_grid
-        else:
-            new_root_node = self.root_node.child[self.last_move]
-            new_root_node.parent = None
-            new_root_node.move = None
+        # if self.last_move is None:
+        #     self.root_node = Node(None, None, get_legal_moves(root_grid))
+        #     self.root_grid = root_grid
+        # else:
+        #     new_root_node = self.root_node.child[self.last_move]
+        #     new_root_node.parent = None
+        #     new_root_node.move = None
 
-            new_root_node.legal_moves = get_legal_moves(root_grid)
-            unlegal_moves = list(set([0, 1, 2, 3]) - set(new_root_node.legal_moves))
-            for move in unlegal_moves:
-                del new_root_node.child[move]
-            self.root_node = new_root_node
-            self.root_grid = root_grid
+        #     new_root_node.legal_moves = get_legal_moves(root_grid)
+        #     unlegal_moves = list(set([0, 1, 2, 3]) - set(new_root_node.legal_moves))
+        #     for move in unlegal_moves:
+        #         del new_root_node.child[move]
+        #     self.root_node = new_root_node
+        #     self.root_grid = root_grid
 
         for _ in range(n_sim):
             self.searchTree()
@@ -125,5 +126,5 @@ class MCTS:
                 visit = self.root_node.child[i].N
             except KeyError:
                 visit = 0
-            visits.append(visit)            
+            visits.append(visit)
         return visits

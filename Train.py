@@ -7,7 +7,7 @@ from Utils import preprocessing
 
 lr = 1e-3
 batch_size = 256
-n_sim = 100
+n_sim = 50
 maxlen = 10000
 
 n_episode = 10000
@@ -39,8 +39,8 @@ def main():
             score += reward
             agent.step += 1
         agent.memory.updateZ()
-        loss = agent.learn()
         if (e + 1) % 10 == 0:
+            loss = agent.learn()
             agent.save()
         score_list.append(agent.step)
         average_score = np.mean(score_list[-100:])

@@ -27,7 +27,7 @@ class MemoryBuffer:
     def updateZ(self, n_step : int = 10, gamma : float = 0.95):
         Z_temp = []
         for i in range(len(self.Z_temp)):
-            value = self.getNstepvalue(self.Z_temp[i:i+n_step])
+            value = self.getNstepvalue(self.Z_temp[i:i+n_step], gamma)
             Z_temp.append(value)                        
         self.Z += deque(Z_temp)
         self.Z_temp.clear()
